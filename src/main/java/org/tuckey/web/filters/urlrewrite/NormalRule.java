@@ -234,4 +234,8 @@ public class NormalRule extends RuleBase implements Rule {
     public void setQueryStringAppend(String value) {
         queryStringAppend = "true".equalsIgnoreCase(value);
     }
+    
+    public boolean getQueryStringAppend() {
+    	return queryStringAppend;
+    }
 }

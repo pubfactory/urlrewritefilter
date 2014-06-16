@@ -169,4 +169,21 @@ public class ModRewriteConfLoaderTest extends TestCase {
         assertEquals("request-filename", ((Condition) ((NormalRule) conf.getRules().get(0)).getConditions().get(0)).getType());
         assertEquals("notdir", ((Condition) ((NormalRule) conf.getRules().get(0)).getConditions().get(0)).getOperator());
     }
+
+
+    public void testQSAppendRedirect() {
+        loader.process("\n" +
+                "   RewriteRule ^/$     http://www.foo.com [QSA,R]              \n" +
+                "", conf);
+
+        assertNotNull(conf.getRules());
+        assertEquals(1, conf.getRules().size());
+
+        NormalRule rule = (NormalRule) conf.getRules().get(0);
+        assertNotNull(rule);
+        assertEquals("redirect", rule.getToType());
+        assertEquals("^/$", rule.getFrom());
+        assertEquals("http://www.foo.com", rule.getTo());
+        assertTrue(rule.getQueryStringAppend());
+    }
 }

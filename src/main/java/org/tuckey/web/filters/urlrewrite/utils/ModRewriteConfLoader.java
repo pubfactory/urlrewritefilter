@@ -322,7 +322,7 @@ public class ModRewriteConfLoader {
                 This flag forces the rewrite engine to append a query string part of the substitution string to the existing string, instead of replacing it. Use this when you want to add more data to the query string via a rewrite rule.
                 */
                 if ("qsappend".equalsIgnoreCase(flag) || "QSA".equalsIgnoreCase(flag)) {
-                    log.info("qsappend flag [QSA] not supported");
+                	rule.setQueryStringAppend("true");
                 }
                 /*
                 # 'redirect|R [=code]' (force redirect)
@@ -380,6 +380,8 @@ public class ModRewriteConfLoader {
                     } else if (part.equalsIgnoreCase("%{HTTP_REFERER}")) {
                         condition.setType("header");
                         condition.setName("referer");
+                    } else if (part.equalsIgnoreCase("%{HTTPS}")) {
+                        condition.setType("scheme");
                     } else if (part.equalsIgnoreCase("%{HTTP_COOKIE}")) {
                         condition.setType("header");
                         condition.setName("cookie");
