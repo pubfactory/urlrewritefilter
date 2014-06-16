@@ -57,7 +57,7 @@ import java.util.Calendar;
  */
 public class Condition extends TypeConverter {
 
-    private static Log log = Log.getLog(Condition.class);
+    private static final Log log = Log.getLog(Condition.class);
 
     /**
      * Should this expression be matched case sensitively.

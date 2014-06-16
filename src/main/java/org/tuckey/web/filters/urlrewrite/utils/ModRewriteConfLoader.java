@@ -4,13 +4,16 @@ import org.tuckey.web.filters.urlrewrite.Condition;
 import org.tuckey.web.filters.urlrewrite.Conf;
 import org.tuckey.web.filters.urlrewrite.NormalRule;
 import org.tuckey.web.filters.urlrewrite.SetAttribute;
+import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -186,19 +189,61 @@ public class ModRewriteConfLoader {
         }
         conf.setEngineEnabled(enabled);
     }
+    
+    /**
+     * Parses rule/condition flags and returns them as a map... this allows for consistent parsing for rules vs. conditions
+     * @param part
+     * @return
+     */
+    private Map<String, String> getFlags(final String part) {
+    	final LinkedHashMap<String, String> flagMap = new LinkedHashMap<String, String>(3, 1);
+    	 String rawFlags = StringUtils.trimToNull(part.substring(1, part.length() - 1));
+         if (rawFlags != null) {
+             String[] flags = rawFlags.split(",");
+             for (int k = 0; k < flags.length; k++) {
+                 String flag = flags[k];
+                 String flagValue = null;
+                 if (flag.indexOf("=") != -1) {
+                     flagValue = flag.substring(flag.indexOf("=") + 1);
+                     flag = flag.substring(0, flag.indexOf("="));
+                 }
+                 flag = flag.toLowerCase();
+                 flagMap.put(flag, flagValue);
+             }
+         } else {
+             log.error("cannot parse flags from " + part);
+         }
+         return flagMap;
+    }
 
+    /**
+     * Processes the flags for this condition.
+     * 
+     * @param condition
+     * @param part
+     */
+    private void processConditionFlags(Condition condition, String part) {
+    	
+    	final Map<String, String> flags = getFlags(part);
+    	for(final String flag : flags.keySet()) {
+    	   final String flagValue = flags.get(flag);
+    	   
+	    	/*
+	        # 'nocase|NC' (no case)
+	        This makes the Pattern case-insensitive, ignoring difference between 'A-Z' and 'a-z' when Pattern is matched
+	        */
+	        if ("nocase".equalsIgnoreCase(flag) || "NC".equalsIgnoreCase(flag)) {
+	            condition.setCaseSensitive(false);
+	        }
+        }
+    }
+    
     private void processRuleFlags(NormalRule rule, String part) {
-        String rawFlags = StringUtils.trimToNull(part.substring(1, part.length() - 1));
-        if (rawFlags != null) {
-            String[] flags = rawFlags.split(",");
-            for (int k = 0; k < flags.length; k++) {
-                String flag = flags[k];
-                String flagValue = null;
-                if (flag.indexOf("=") != -1) {
-                    flagValue = flag.substring(flag.indexOf("=") + 1);
-                    flag = flag.substring(0, flag.indexOf("="));
-                }
-                flag = flag.toLowerCase();
+
+    	final Map<String, String> flags = getFlags(part);
+    	for(final String flag : flags.keySet()) {
+    		final String flagValue = flags.get(flag);
+    	   
                 /*
                 # 'chain|C' (chained with next rule)
                 This flag chains the current rule with the next rule (which itself can be chained with the following rule, and so on). This has the following effect: if a rule matches, then processing continues as usual - the flag has no effect. If the rule does not match, then all following chained rules are skipped. For instance, it can be used to remove the ``.www'' part, inside a per-directory rule set, when you let an external redirect happen (where the ``.www'' part should not occur!).
@@ -357,15 +402,13 @@ public class ModRewriteConfLoader {
                 }
 
             }
-
-        } else {
-            log.error("cannot parse flags from " + part);
-        }
     }
 
     private Condition processRewriteCond(String rewriteCondLine) {
         log.debug("about to parse condition");
         Condition condition = new Condition();
+        condition.setCaseSensitive(true); // by default, apache rules are case senstitive.
+        
         Matcher condMatcher = CONDITION_PATTERN.matcher(rewriteCondLine);
         if (condMatcher.matches()) {
             String conditionParts = StringUtils.trimToNull(condMatcher.group(1));
@@ -396,7 +439,6 @@ public class ModRewriteConfLoader {
                         condition.setName("accept");
                     } else if (part.equalsIgnoreCase("%{HTTP_HOST}")) {
                         condition.setType("server-name");
-
                     } else if (part.equalsIgnoreCase("%{REMOTE_ADDR}")) {
                         condition.setType("remote-addr");
                     } else if (part.equalsIgnoreCase("%{REMOTE_HOST}")) {
@@ -474,10 +516,8 @@ public class ModRewriteConfLoader {
                         log.error("THE_REQUEST currently unsupported, ignoring");
                     } else if (part.equalsIgnoreCase("%{IS_SUBREQ}")) {
                         log.error("IS_SUBREQ currently unsupported, ignoring");
-                    } else if (part.equalsIgnoreCase("%{HTTPS}")) {
-                        log.error("HTTPS currently unsupported, ignoring");
-                        //todo: note https in mod_rewrite means "on" in URF land it means true
-
+                    } else if (part.startsWith("[") && part.endsWith("]")){
+                    	processConditionFlags(condition, part);
                     } else {
                         condition.setValue(part);
                     }

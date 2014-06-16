@@ -1,12 +1,19 @@
 package org.tuckey.web.filters.urlrewrite.utils;
 
 import junit.framework.TestCase;
+
 import org.tuckey.web.filters.urlrewrite.Condition;
 import org.tuckey.web.filters.urlrewrite.Conf;
 import org.tuckey.web.filters.urlrewrite.NormalRule;
+import org.tuckey.web.filters.urlrewrite.RewrittenUrl;
+import org.tuckey.web.testhelper.MockRequest;
+import org.tuckey.web.testhelper.MockResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+
+import javax.servlet.ServletException;
 
 public class ModRewriteConfLoaderTest extends TestCase {
 
@@ -89,6 +96,88 @@ public class ModRewriteConfLoaderTest extends TestCase {
         assertEquals("permanent-redirect", rule.getToType());
         assertEquals("^/$", rule.getFrom());
         assertEquals("http://www.foo.com", rule.getTo());
+    }
+    
+    public void testNoCaseConditionFlag() throws IOException, ServletException, InvocationTargetException {
+    	loader.process("\n" +
+                "RewriteCond %{HTTP_HOST} ^(.*)from\\.com$ [NC]\n" +
+                "RewriteRule ^(.*)$ http://to.com [L,R=301,QSA]\n\n" +
+                 "RewriteCond %{HTTP_HOST} ^(.*)from1\\.com$\n" +
+                 "RewriteRule ^(.*)$ http://to1.com [L,R=301,QSA]\n" +
+                "", conf);
+    	 
+    	assertNotNull(conf.getRules());
+         assertEquals(2, conf.getRules().size());
+
+         NormalRule rule = (NormalRule) conf.getRules().get(0);
+         assertNotNull(rule);
+         rule.initialise(null);
+         
+         assertEquals("permanent-redirect", rule.getToType());
+         assertEquals("^(.*)$", rule.getFrom());
+         assertTrue(rule.isLast());
+         assertEquals("http://to.com", rule.getTo());
+         
+         
+         MockRequest request = new MockRequest("/");
+         request.setQueryString("testParam=false");
+         request.setServerName("From.com"); // capitalized
+         RewrittenUrl newUrl = rule.matches("/?testParam=false", request, new MockResponse());
+         assertEquals("http://to.com?testParam=false", newUrl.getTarget());
+         
+     	 // now lets test that the rule without the [NC] flag works.
+         rule = (NormalRule) conf.getRules().get(1);
+         assertNotNull(rule);
+         rule.initialise(null);
+         
+         assertEquals("permanent-redirect", rule.getToType());
+         assertEquals("^(.*)$", rule.getFrom());
+         assertTrue(rule.isLast());
+         assertEquals("http://to1.com", rule.getTo());
+         
+         
+         request = new MockRequest("/");
+         request.setQueryString("testParam=false");
+         request.setServerName("From1.com"); // capitalized, should not work...
+         newUrl = rule.matches("/?testParam=false", request, new MockResponse());
+         assertNull("The url should not have been rewritten, so this should be null!", newUrl);
+
+         request = new MockRequest("/");
+         request.setQueryString("testParam=false");
+         request.setServerName("from1.com"); // lowercased, should work...
+         newUrl = rule.matches("/?testParam=false", request, new MockResponse());
+         assertEquals("http://to1.com?testParam=false", newUrl.getTarget());
+    }
+
+    
+    public void testHttpHostCondition() throws IOException, ServletException, InvocationTargetException {
+    	loader.process("\n" +
+                "  # http host condition redirect\n" +
+                "RewriteCond %{HTTP_HOST} ^(.*)from\\.com$ [NC]\n" +
+                "RewriteRule ^(.*)$ http://to.com [L,R=301,QSA]" +
+                "", conf);
+    	 
+    	assertNotNull(conf.getRules());
+         assertEquals(1, conf.getRules().size());
+
+         NormalRule rule = (NormalRule) conf.getRules().get(0);
+         assertNotNull(rule);
+         
+         rule.initialise(null);
+         
+         assertEquals("permanent-redirect", rule.getToType());
+         assertEquals("^(.*)$", rule.getFrom());
+         assertTrue(rule.isLast());
+         assertEquals("http://to.com", rule.getTo());
+         
+         
+         MockRequest request = new MockRequest("/");
+         request.setQueryString("testParam=false");
+         request.setServerName("from.com");
+         RewrittenUrl newUrl = rule.matches("/?testParam=false", request, new MockResponse());
+         assertEquals("http://to.com?testParam=false", newUrl.getTarget());
+         
+    	
     }
 
     public void testMobile() {
