@@ -1,20 +1,24 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.tuckey</groupId>
+    <groupId>com.safaribooks</groupId>
     <artifactId>urlrewritefilter</artifactId>
     <packaging>jar</packaging>
     <version>4.0.5-SNAPSHOT</version>
     <name>UrlRewriteFilter</name>
-    <url>http://www.tuckey.org/urlrewrite/</url>
-    <inceptionYear>2001</inceptionYear>
-    <description>A Java Web Filter for any J2EE compliant web application server (such as Resin, Orion or Tomcat), which
+    <url>https://github.com/safarijv/urlrewritefilter</url>
+    <inceptionYear>2014</inceptionYear>
+    <description>
+    	A fork of http://www.tuckey.org/urlrewrite/
+    	
+    	A Java Web Filter for any J2EE compliant web application server (such as Resin, Orion or Tomcat), which
         allows you to rewrite URLs before they get to your code. It is a very powerful tool just like Apache's
         mod_rewrite.
     </description>
-    <organization>
-        <name>Paul Tuckey</name>
-    </organization>
+	  <organization>
+	    <name>Safari</name>
+	    <url>http://www.safaribooks.com</url>
+	  </organization>
 
     <parent>
         <groupId>org.sonatype.oss</groupId>
@@ -212,5 +216,24 @@
             </plugin>
         </plugins>
     </reporting>
+    
+    <!--
+     Currently, these are only accessible to internal safari employees... if there is interest
+     we can figure out how to push to maven central
+    -->
+	<distributionManagement>
+    	<repository>
+    		<id>ifactory-releases</id>
+    		<url>
+    			http://nexus.pubfactory.com/nexus/content/repositories/releases
+    		</url>
+    	</repository>
+    	<snapshotRepository>
+    		<id>ifactory-snapshots</id>
+    		<url>
+    			http://nexus.pubfactory.com/nexus/content/repositories/snapshots
+    		</url>
+    	</snapshotRepository>
+	</distributionManagement>
 
 </project>
