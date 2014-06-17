@@ -176,8 +176,7 @@ public class ModRewriteConfLoaderTest extends TestCase {
          request.setServerName("from.com");
          RewrittenUrl newUrl = rule.matches("/?testParam=false", request, new MockResponse());
          assertEquals("http://to.com?testParam=false", newUrl.getTarget());
-         
-    	
+        	
     }
 
     public void testMobile() {
@@ -274,5 +273,51 @@ public class ModRewriteConfLoaderTest extends TestCase {
         assertEquals("^/$", rule.getFrom());
         assertEquals("http://www.foo.com", rule.getTo());
         assertTrue(rule.getQueryStringAppend());
+    }
+
+
+    public void testNegatedConditionRegex() {
+        loader.process("\n" +
+                "   RewriteRule ^/$     http://www.foo.com [QSA,R]              \n" +
+                "", conf);
+
+        assertNotNull(conf.getRules());
+        assertEquals(1, conf.getRules().size());
+
+        NormalRule rule = (NormalRule) conf.getRules().get(0);
+        assertNotNull(rule);
+        assertEquals("redirect", rule.getToType());
+        assertEquals("^/$", rule.getFrom());
+        assertEquals("http://www.foo.com", rule.getTo());
+        assertTrue(rule.getQueryStringAppend());
+    }
+
+    public void testNotCondition() throws IOException, ServletException, InvocationTargetException {
+    	loader.process("\n" +
+	    	"RewriteCond %{REQUEST_URI} !^/probe$ [NC]\n" +
+			"RewriteCond %{HTTP_HOST} !^www\\.from\\.com$ [NC]\n" +
+			"RewriteCond %{HTTP_HOST} !^www\\.from-too\\.com$ [NC]\n" +
+			"RewriteRule ^(.*)$ http://www.to.com$1 [L,R=301]\n", conf);
+    	NormalRule rule = (NormalRule) conf.getRules().get(0);
+        assertNotNull(rule);
+        rule.initialise(null);
+        
+        assertEquals("permanent-redirect", rule.getToType());
+        assertEquals("^(.*)$", rule.getFrom());
+        assertTrue(rule.isLast());
+        assertEquals("http://www.to.com$1", rule.getTo());
+        
+
+        MockRequest request = new MockRequest("/");
+        request.setServerName("from.com");
+        request.setQueryString("testParam=false");
+        RewrittenUrl newUrl = rule.matches("/?testParam=false", request, new MockResponse());
+        assertEquals("http://www.to.com/?testParam=false", newUrl.getTarget());
+        
+
+        // www.from.com should not pass the conditions, as it says !www.from.com
+        request.setServerName("www.from.com");
+        newUrl = rule.matches("/?testParam=false", request, new MockResponse());
+        assertNull(newUrl);
     }
 }

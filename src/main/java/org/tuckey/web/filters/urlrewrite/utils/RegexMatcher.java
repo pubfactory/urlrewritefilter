@@ -43,10 +43,11 @@ import java.util.regex.Matcher;
  */
 public class RegexMatcher implements StringMatchingMatcher {
 
-    private Matcher matcher;
+    private final Matcher matcher;
     private boolean found = false;
+    protected boolean negated = false;
 
-    public RegexMatcher(Matcher matcher) {
+    public RegexMatcher(final Matcher matcher) {
         this.matcher = matcher;
     }
 
@@ -55,10 +56,14 @@ public class RegexMatcher implements StringMatchingMatcher {
      */
     public boolean find() {
         found = matcher.find();
-        return found;
+        return isFound();
     }
 
     public boolean isFound() {
+        if(isNegated()) {
+        	// negate the found, as this is meant to be not found
+        	return !found;
+        }
         return found;
     }
 
@@ -91,6 +96,10 @@ public class RegexMatcher implements StringMatchingMatcher {
 
 	public boolean isMultipleMatchingSupported() {
 		return true;
+	}
+
+	public boolean isNegated() {
+		return negated;
 	}
 
 

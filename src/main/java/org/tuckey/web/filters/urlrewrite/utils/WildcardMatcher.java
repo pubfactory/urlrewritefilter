@@ -45,7 +45,7 @@ import java.util.regex.Pattern;
  */
 public class WildcardMatcher implements StringMatchingMatcher {
 
-    private static Log log = Log.getLog(WildcardMatcher.class);
+    private static final Log log = Log.getLog(WildcardMatcher.class);
 
 
     private WildcardHelper wh;
@@ -53,6 +53,7 @@ public class WildcardMatcher implements StringMatchingMatcher {
     private String matchStr;
     private Map resultMap = new HashMap();
     private boolean found = false;
+	private boolean negated = false;
 
 
     public WildcardMatcher(WildcardHelper wh, String patternStr, String matchStr) {
@@ -63,10 +64,14 @@ public class WildcardMatcher implements StringMatchingMatcher {
 
     public boolean find() {
         found = wh.match(resultMap, matchStr, compiledPattern);
-        return found;
+        return isFound();
     }
 
     public boolean isFound() {
+        if(negated) {
+        	// negate the found, as this is meant to be not found
+        	return !found;
+        }
         return found;
     }
 
@@ -161,6 +166,10 @@ public class WildcardMatcher implements StringMatchingMatcher {
 
 	public String getMatchedString() {
 		return matchStr;
+	}
+
+	public boolean isNegated() {
+		return negated;
 	}
 
 }

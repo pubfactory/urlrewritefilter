@@ -35,6 +35,8 @@
 package org.tuckey.web.filters.urlrewrite;
 
 import org.tuckey.web.filters.urlrewrite.utils.Log;
+import org.tuckey.web.filters.urlrewrite.utils.NegatedRegexMatcher;
+import org.tuckey.web.filters.urlrewrite.utils.NegatedRegexPattern;
 import org.tuckey.web.filters.urlrewrite.utils.NumberUtils;
 import org.tuckey.web.filters.urlrewrite.utils.RegexPattern;
 import org.tuckey.web.filters.urlrewrite.utils.StringMatchingMatcher;
@@ -46,6 +48,7 @@ import org.tuckey.web.filters.urlrewrite.utils.WildcardPattern;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+
 import java.io.File;
 import java.util.Calendar;
 
@@ -333,7 +336,7 @@ public class Condition extends TypeConverter {
     }
 
 
-    private ConditionMatch evaluateStringCondition(String value) {
+    private ConditionMatch evaluateStringCondition(final String value) {
         if (pattern == null && value == null) {
             log.debug("value is empty and pattern is also, condition false");
             return evaluateBoolCondition(false);
@@ -367,14 +370,15 @@ public class Condition extends TypeConverter {
             log.debug("value isn't empty but pattern is, assuming checking for existence, condition true");
             return evaluateBoolCondition(true);
         }
-        if (value == null) {
+        String cleanedValue = value;
+        if (cleanedValue == null) {
             // value is null make value ""
-            value = "";
+        	cleanedValue = "";
         }
         if (log.isDebugEnabled()) {
-            log.debug("evaluating \"" + value + "\" against " + strValue);
+            log.debug("evaluating \"" + cleanedValue + "\" against " + strValue);
         }
-        StringMatchingMatcher matcher = pattern.matcher(value);
+        StringMatchingMatcher matcher = pattern.matcher(cleanedValue);
         return evaluateBoolCondition(matcher, matcher.find());
     }
 
@@ -529,7 +533,7 @@ public class Condition extends TypeConverter {
                 initStringValue();
         }
         if (log.isDebugEnabled()) {
-            log.debug("loaded condition " + getType() + " " + name + " " + strValue);
+            log.debug("loaded condition - type = " + getType() + ", name = " + name + ", value = " + strValue);
         }
         valid = error == null;
         return valid;
@@ -560,8 +564,13 @@ public class Condition extends TypeConverter {
                     pattern = new WildcardPattern(strValue);
 
                 } else {
-                    // default is regex
-                    pattern = new RegexPattern(strValue, caseSensitive);
+                	if(strValue.startsWith("!")) {
+                		// if it starts with !, then treat it as a negation, as that is how Apache treats it.
+                		pattern = new NegatedRegexPattern(strValue.substring(1), caseSensitive); // remove the negation, and create a negated regex.
+                	} else {
+                		// default is regex
+                		pattern = new RegexPattern(strValue, caseSensitive);
+                	}
                 }
 
             } catch (StringMatchingPatternSyntaxException e) {

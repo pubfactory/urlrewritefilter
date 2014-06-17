@@ -34,33 +34,20 @@
  */
 package org.tuckey.web.filters.urlrewrite.utils;
 
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
+import java.util.regex.Matcher;
 
 /**
- * Simple wrapper for java.util.regex.Pattern.
+ * Simple wrapper for java.util.regex.Matcher.
+ * 
+ * returns the opposite of the regex... aka. "Not Matches"
  *
- * @see java.util.regex.Pattern
+ * @see java.util.regex.Matcher
  */
-public class RegexPattern implements StringMatchingPattern {
+public class NegatedRegexMatcher extends RegexMatcher {
 
-    protected final Pattern pattern;
-
-    public RegexPattern(String patternStr, boolean caseSensitive)
-            throws StringMatchingPatternSyntaxException {
-        try {
-            if (caseSensitive) {
-                pattern = Pattern.compile(patternStr);
-            } else {
-                pattern = Pattern.compile(patternStr, Pattern.CASE_INSENSITIVE);
-            }
-        } catch (PatternSyntaxException e) {
-            throw new StringMatchingPatternSyntaxException(e);
-        }
-    }
-
-    public StringMatchingMatcher matcher(String regex) {
-        return new RegexMatcher(pattern.matcher(regex));
-    }
+    public NegatedRegexMatcher(final Matcher matcher) {
+		super(matcher);
+		negated = true;
+	}
 
 }

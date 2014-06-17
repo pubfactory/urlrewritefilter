@@ -881,5 +881,4 @@ public class ConditionTest extends TestCase {
         assertNull("condition must not match", condition3.getConditionMatch(request));
     }
 
-
 }

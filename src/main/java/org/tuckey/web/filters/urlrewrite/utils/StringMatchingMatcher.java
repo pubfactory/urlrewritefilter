@@ -56,4 +56,7 @@ public interface StringMatchingMatcher {
     int groupCount();
 
     String group(int groupId);
+    
+    /** signifies that the match was a "not match" (in apache land, this means the regex started with "!") */
+    boolean isNegated();
 }
