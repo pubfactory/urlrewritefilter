@@ -41,7 +41,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.io.IOException;
@@ -52,14 +51,14 @@ import java.lang.reflect.InvocationTargetException;
  */
 public class CatchElem implements Runnable {
 
-    private static final Log log = Log.getLog(CatchElem.class);
+    private static Log log = Log.getLog(CatchElem.class);
 
     private String classStr;
     private String error = null;
     private boolean valid = false;
     private boolean initialised = false;
-    private Class<?> exceptionClass;
-    private final ArrayList<Run> runs = new ArrayList<Run>();
+    private Class exceptionClass;
+    private ArrayList runs = new ArrayList();
 
     /**
      * For testing and documentation we don't want to load the classes.

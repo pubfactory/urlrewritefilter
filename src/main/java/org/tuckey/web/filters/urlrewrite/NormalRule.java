@@ -89,7 +89,7 @@ public class NormalRule extends RuleBase implements Rule {
     public RewrittenUrl matches(final String url, final HttpServletRequest hsRequest,
                                 final HttpServletResponse hsResponse, RuleChain chain)
             throws IOException, ServletException, InvocationTargetException {
-    	RuleExecutionOutput ruleExecutionOutput = super.matchesBase(url, hsRequest, hsResponse, chain);
+        RuleExecutionOutput ruleExecutionOutput = super.matchesBase(url, hsRequest, hsResponse, chain);
         if (ruleExecutionOutput == null || !ruleExecutionOutput.isRuleMatched()) {
             // no match, or run/set only match
             return null;
@@ -102,7 +102,6 @@ public class NormalRule extends RuleBase implements Rule {
                 ruleExecutionOutput.setReplacedUrl(target + "?" + hsRequest.getQueryString());
             }
         }
-       
         if ( toServletContext != null ) ruleExecutionOutput.setReplacedUrlContext(toServletContext);
         return RuleExecutionOutput.getRewritenUrl(toType, encodeToUrl, ruleExecutionOutput);
     }

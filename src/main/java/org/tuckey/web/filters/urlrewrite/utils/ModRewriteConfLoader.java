@@ -2,7 +2,6 @@ package org.tuckey.web.filters.urlrewrite.utils;
 
 import org.tuckey.web.filters.urlrewrite.Condition;
 import org.tuckey.web.filters.urlrewrite.Conf;
-import org.tuckey.web.filters.urlrewrite.ModRewriteRule;
 import org.tuckey.web.filters.urlrewrite.NormalRule;
 import org.tuckey.web.filters.urlrewrite.SetAttribute;
 import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
@@ -23,7 +22,7 @@ import java.util.regex.Pattern;
  */
 public class ModRewriteConfLoader {
 
-    private static final Log log = Log.getLog(ModRewriteConfLoader.class);
+    private static Log log = Log.getLog(ModRewriteConfLoader.class);
 
     private final Pattern LOG_LEVEL_PATTERN = Pattern.compile("RewriteLogLevel\\s+([0-9]+)\\s*$");
     private final Pattern LOG_TYPE_PATTERN = Pattern.compile("RewriteLog\\s+(.*)$");
@@ -141,8 +140,8 @@ public class ModRewriteConfLoader {
         return logLevelStr;
     }
 
-    private ModRewriteRule processRule(String line) {
-    	ModRewriteRule rule = new ModRewriteRule();
+    private NormalRule processRule(String line) {
+        NormalRule rule = new NormalRule();
         Matcher ruleMatcher = RULE_PATTERN.matcher(line);
         if (ruleMatcher.matches()) {
             String rulePartStr = StringUtils.trimToNull(ruleMatcher.group(1));
@@ -520,22 +519,7 @@ public class ModRewriteConfLoader {
                     } else if (part.startsWith("[") && part.endsWith("]")){
                     	processConditionFlags(condition, part);
                     } else {
-                    	if("scheme".equals(condition.getType())) {
-                    		// the condition is against scheme... we need to make sure we parse "!=on", "=on", "=off" and "!=off"
-                    		if(part != null) {
-                    			if(part.equals("!=on") || part.equals("=off")) {
-                    				// https should be off
-                    				condition.setValue("^http$");
-                    			} else if (part.equals("=on") || part.equals("!=off")) {
-                    				// https should be on
-                    				condition.setValue("^https$");
-                    			} else {
-                    				log.error("could not parse value of \"" + part + "\" for scheme... supported values are \"!=on\", \"=on\", \"=off\" and \"!=off\"");
-                    			}
-                    		}
-                    	} else {
-                    		condition.setValue(part);
-                    	}
+                        condition.setValue(part);
                     }
 
                 }
