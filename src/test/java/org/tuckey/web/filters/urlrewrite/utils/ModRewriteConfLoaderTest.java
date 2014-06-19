@@ -3,6 +3,7 @@ package org.tuckey.web.filters.urlrewrite.utils;
 import junit.framework.TestCase;
 
 import org.tuckey.web.filters.urlrewrite.Condition;
+import org.tuckey.web.filters.urlrewrite.ConditionMatch;
 import org.tuckey.web.filters.urlrewrite.Conf;
 import org.tuckey.web.filters.urlrewrite.NormalRule;
 import org.tuckey.web.filters.urlrewrite.RewrittenUrl;
@@ -259,7 +260,7 @@ public class ModRewriteConfLoaderTest extends TestCase {
     }
 
 
-    public void testQSAppendRedirect() {
+    public void testQSAppendRedirect() throws IOException, ServletException, InvocationTargetException {
         loader.process("\n" +
                 "   RewriteRule ^/$     http://www.foo.com [QSA,R]              \n" +
                 "", conf);
@@ -273,6 +274,14 @@ public class ModRewriteConfLoaderTest extends TestCase {
         assertEquals("^/$", rule.getFrom());
         assertEquals("http://www.foo.com", rule.getTo());
         assertTrue(rule.getQueryStringAppend());
+        rule.initialise(null);
+        
+
+        MockRequest request = new MockRequest("/");
+        request.setServerName("to.com");
+        request.setQueryString("testParam=false");
+        RewrittenUrl newUrl = rule.matches("/?testParam=false", request, new MockResponse());
+        assertEquals("http://www.foo.com?testParam=false", newUrl.getTarget()); // this will make sure we don't append the query string twice
     }
 
 
@@ -319,5 +328,38 @@ public class ModRewriteConfLoaderTest extends TestCase {
         request.setServerName("www.from.com");
         newUrl = rule.matches("/?testParam=false", request, new MockResponse());
         assertNull(newUrl);
+    }
+
+    public void testHttpsNotOn() throws IOException, ServletException, InvocationTargetException {
+    	loader.process("\n" +
+	    	"RewriteCond %{HTTPS} !=on\n" +
+	    	"RewriteRule ^/oa/(.*) https://www.to.com/oa/$1 [R=301,L,QSA]", conf);
+    	NormalRule rule = (NormalRule) conf.getRules().get(0);
+        assertNotNull(rule);
+        rule.initialise(null);
+        
+        assertEquals("permanent-redirect", rule.getToType());
+        assertEquals("^/oa/(.*)", rule.getFrom());
+        assertTrue(rule.isLast());
+        assertEquals("https://www.to.com/oa/$1", rule.getTo());
+        
+        Condition cond = (Condition) rule.getConditions().get(0);
+        assertEquals(cond.getValue(), "^http$");
+        assertEquals(cond.getType(), "scheme");
+        
+
+        MockRequest request = new MockRequest("/");
+        request.setServerName("to.com");
+        request.setScheme("http");
+        request.setPathInfo("/oa/bob");
+        request.setQueryString("testParam=false");
+        RewrittenUrl newUrl = rule.matches("/oa/bob?testParam=false", request, new MockResponse());
+        assertEquals("https://www.to.com/oa/bob?testParam=false", newUrl.getTarget());
+        
+
+        // if the request is already https, do nothing
+        request.setScheme("https");
+        newUrl = rule.matches("/oa/bob?testParam=false", request, new MockResponse());
+        assertNull("Expected null, but was " + (newUrl == null ? "null" : newUrl.getTarget()), newUrl);
     }
 }

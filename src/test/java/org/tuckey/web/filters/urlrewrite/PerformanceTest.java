@@ -64,9 +64,9 @@ public class PerformanceTest extends TestCase {
         long timeStart = System.currentTimeMillis();
         for (float i = 0; i < testAmount; i++) {
             urlRewriter.processRequest(request, response);
-            if (i % 500 == 0 && i > 0) {
-                System.out.println("avg so far " + ((System.currentTimeMillis() - timeStart) / i) + "ms per rule");
-            }
+//            if (i % 500 == 0 && i > 0) {
+//                System.out.println("avg so far " + ((System.currentTimeMillis() - timeStart) / i) + "ms per rule");
+//            }
         }
         long took = System.currentTimeMillis() - timeStart;
         System.out.println("took " + took + "ms " + (took / testAmount) + "ms  per rule");
@@ -104,9 +104,9 @@ public class PerformanceTest extends TestCase {
         long timeStart = System.currentTimeMillis();
         for (float i = 0; i < testAmount; i++) {
             urlRewriteWrappedResponse.encodeURL("/sdasd/asdasd/asdasd");
-            if (i % 500 == 0 && i > 0) {
-                System.out.println("avg so far " + ((System.currentTimeMillis() - timeStart) / i) + "ms per rule");
-            }
+//            if (i % 500 == 0 && i > 0) {
+//                System.out.println("avg so far " + ((System.currentTimeMillis() - timeStart) / i) + "ms per rule");
+//            }
         }
         long took = System.currentTimeMillis() - timeStart;
         System.out.println("took " + took + "ms " + (took / testAmount) + "ms per rule");
