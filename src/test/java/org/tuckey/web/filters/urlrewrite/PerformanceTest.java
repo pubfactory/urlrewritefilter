@@ -105,7 +105,7 @@ public class PerformanceTest extends TestCase {
         for (float i = 0; i < testAmount; i++) {
             urlRewriteWrappedResponse.encodeURL("/sdasd/asdasd/asdasd");
             if (i % 500 == 0 && i > 0) {
-                System.out.println("avg so far " + ((System.currentTimeMillis() - timeStart) / i) + "ms per rule");
+                 System.out.println("avg so far " + ((System.currentTimeMillis() - timeStart) / i) + "ms per rule");
             }
         }
         long took = System.currentTimeMillis() - timeStart;
