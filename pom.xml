@@ -15,16 +15,11 @@
         allows you to rewrite URLs before they get to your code. It is a very powerful tool just like Apache's
         mod_rewrite.
     </description>
+    
 	  <organization>
 	    <name>Safari</name>
 	    <url>http://www.safaribooks.com</url>
 	  </organization>
-
-    <parent>
-        <groupId>org.sonatype.oss</groupId>
-        <artifactId>oss-parent</artifactId>
-        <version>7</version>
-    </parent>
 
     <properties>
         <app.manual-version>4.0</app.manual-version>
