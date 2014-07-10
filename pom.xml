@@ -4,7 +4,7 @@
     <groupId>com.safaribooks</groupId>
     <artifactId>urlrewritefilter</artifactId>
     <packaging>jar</packaging>
-    <version>4.0.5</version>
+    <version>4.0.6-SNAPSHOT</version>
     <name>UrlRewriteFilter</name>
     <url>https://github.com/safarijv/urlrewritefilter</url>
     <inceptionYear>2014</inceptionYear>
